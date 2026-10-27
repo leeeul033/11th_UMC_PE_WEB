@@ -1,0 +1,131 @@
+#root {
+  min-height: 100vh;
+}
+
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 20px 18px; /* 카드 간격은 Figma 수치 확인 전 임시값 */
+  width: 100%;
+}
+
+
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #e3e6eb;
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: min(100%, 1440px);
+  min-height: 57px;
+  margin: 0 auto;
+  padding: 0 80px;
+}
+
+.site-header__brand,
+.site-header__nav,
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-header__brand {
+  font-weight: 700;
+}
+
+.site-header__brand img,
+.site-header__actions img {
+  width: 20px;
+  height: 20px;
+}
+
+.site-header__actions {
+  margin-left: auto;
+}
+
+.site-header__actions button {
+  border: 0;
+  border-radius: 4px;
+  padding: 6px 12px;
+  background: #2563eb;
+  color: #fff;
+}
+
+.page-content {
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  padding: 24px 80px;
+}
+
+.page-content h1 {
+  margin: 0 0 20px;
+  font-size: 24px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+}
+
+.pagination button {
+  min-width: 32px;
+  min-height: 32px;
+}
+
+@media (max-width: 800px) {
+  .site-header__inner,
+  .page-content {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .movie-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.site-header__nav {
+  align-self: stretch;
+}
+
+.site-header__nav-current {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #202124;
+  font-weight: 700;
+}
+
+.site-footer {
+  margin-top: 80px;
+  border-top: 1px solid #e3e6eb;
+  background: #fff;
+}
+
+.site-footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  width: min(100%, 1440px);
+  min-height: 56px;
+  margin: 0 auto;
+  padding: 0 80px;
+  color: #767b84;
+  font-size: 11px;
+}
+
+.site-footer__inner img {
+  width: 24px;
+  height: auto;
+}
+
+.site-footer__inner a {
+  color: inherit;
+  text-decoration: underline;
+}
