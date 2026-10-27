@@ -1,4 +1,5 @@
 import { createRootRoute, Outlet } from "@tanstack/react-router";
+import Footer from "../components/footer";
 import Header from "../components/layout/header";
 
 export const Route = createRootRoute({
@@ -8,6 +9,7 @@ export const Route = createRootRoute({
       <main>
         <Outlet />
       </main>
+      <Footer />
     </div>
   ),
   notFoundComponent: () => <main className="p-4">페이지를 찾을 수 없어요.</main>,
