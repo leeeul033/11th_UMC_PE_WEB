@@ -1,33 +1,50 @@
+import { useEffect, useState } from "react";
+import { getMovies } from "../../api/movies/get-movies";
+import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
-import { movies as initialMovies } from "../../data/movies";
-import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieListPage() {
-  // 공용 store에서 북마크 ID 목록 가져오기
-  const bookmarkedMovieIds = useBookmarkStore(
-    (state) => state.bookmarkedMovieIds,
-  );
+  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // 기존 MovieGrid의 props 연결을 유지하기 위해 가져오기
-  const toggleBookmark = useBookmarkStore(
-    (state) => state.toggleBookmark,
-  );
+  useEffect(() => {
+    let ignore = false;
 
-  // 영화 정보에 store 기준의 북마크 상태 반영
-  const movies = initialMovies.map((movie) => ({
-    ...movie,
-    isBookmarked: bookmarkedMovieIds.includes(movie.id),
-  }));
+    async function loadMovies() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const response = await getMovies({ page: 1 });
+        if (!ignore) setMovies(response.results);
+      } catch {
+        if (!ignore) setErrorMessage("영화 목록을 불러오지 못했어요.");
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    loadMovies();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">
-        영화 목록
-      </h1>
-      <MovieGrid
-        movies={movies}
-        onToggleBookmark={toggleBookmark}
-      />
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">영화 목록</h1>
+
+      {isLoading ? (
+        <p className="text-gray-500">영화 목록을 불러오는 중이에요.</p>
+      ) : errorMessage ? (
+        <p className="text-red-600">{errorMessage}</p>
+      ) : movies.length === 0 ? (
+        <p className="text-gray-500">조건에 맞는 영화가 없어요.</p>
+      ) : (
+        <MovieGrid movies={movies} />
+      )}
     </main>
   );
 }
