@@ -1,49 +1,75 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovies } from "../../api/movies/get-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
 
 export function MovieListPage() {
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    let ignore = false;
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "list", { page }],
+    queryFn: () => getMovies({ page }),
+  });
 
-    async function loadMovies() {
-      setIsLoading(true);
-      setErrorMessage(null);
+  const movies = moviesQuery.data?.results ?? [];
+  const totalPages = moviesQuery.data?.total_pages ?? 0;
 
-      try {
-        const response = await getMovies({ page: 1 });
-        if (!ignore) setMovies(response.results);
-      } catch {
-        if (!ignore) setErrorMessage("영화 목록을 불러오지 못했어요.");
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadMovies();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+  };
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold text-gray-900">영화 목록</h1>
+      <h1 className="mb-6 text-2xl font-bold text-gray-900">
+        영화 목록
+      </h1>
 
-      {isLoading ? (
-        <p className="text-gray-500">영화 목록을 불러오는 중이에요.</p>
-      ) : errorMessage ? (
-        <p className="text-red-600">{errorMessage}</p>
+      {moviesQuery.isPending ? (
+        <p className="text-gray-500">
+          영화 목록을 불러오는 중이에요.
+        </p>
+      ) : moviesQuery.isError ? (
+        <p className="text-red-600">
+          영화 목록을 불러오지 못했어요.
+        </p>
       ) : movies.length === 0 ? (
-        <p className="text-gray-500">조건에 맞는 영화가 없어요.</p>
+        <p className="text-gray-500">
+          조건에 맞는 영화가 없어요.
+        </p>
       ) : (
-        <MovieGrid movies={movies} />
+        <>
+          <MovieGrid movies={movies} />
+
+          <nav
+            aria-label="영화 목록 페이지 이동"
+            className="mt-8 flex items-center justify-center gap-4"
+          >
+            <button
+              type="button"
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              이전
+            </button>
+
+            <span
+              aria-live="polite"
+              className="text-sm text-gray-600"
+            >
+              {page} / {totalPages} 페이지
+            </span>
+
+            <button
+              type="button"
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page >= totalPages}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              다음
+            </button>
+          </nav>
+        </>
       )}
     </main>
   );

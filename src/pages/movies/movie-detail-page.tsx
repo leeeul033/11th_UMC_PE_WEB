@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import type { TmdbMovieDetail } from "../../api/movies/models";
 import { BookmarkButton } from "../../components/bookmark-button";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
@@ -19,42 +18,19 @@ function formatRuntime(runtime: number | null) {
 }
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
-  const parsedMovieId = Number(movieId);
-  const isValidMovieId = Number.isInteger(parsedMovieId) && parsedMovieId > 0;
+  const { movieId: movieIdParam } = useParams({
+    from: "/movies/$movieId",
+  });
 
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const movieId = Number(movieIdParam);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
-  useEffect(() => {
-    let ignore = false;
-
-    setMovie(null);
-    setErrorMessage(null);
-
-    if (!isValidMovieId) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    getMovieDetail(parsedMovieId)
-      .then((response) => {
-        if (!ignore) setMovie(response);
-      })
-      .catch((error) => {
-        if (!ignore) setErrorMessage(getMovieDetailErrorMessage(error));
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [parsedMovieId, isValidMovieId]);
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+    staleTime: 30 * 1000,
+  });
 
   if (!isValidMovieId) {
     return (
@@ -66,7 +42,7 @@ export function MovieDetailPage() {
     );
   }
 
-  if (isLoading) {
+  if (movieDetailQuery.isPending) {
     return (
       <main className="flex min-h-[50vh] items-center justify-center">
         <p className="text-lg font-medium text-gray-600">
@@ -76,16 +52,17 @@ export function MovieDetailPage() {
     );
   }
 
-  if (errorMessage || !movie) {
+  if (movieDetailQuery.isError) {
     return (
       <main className="flex min-h-[50vh] items-center justify-center">
         <p className="text-lg font-medium text-gray-600">
-          {errorMessage ?? "영화 정보를 불러오지 못했어요."}
+          {getMovieDetailErrorMessage(movieDetailQuery.error)}
         </p>
       </main>
     );
   }
 
+  const movie = movieDetailQuery.data;
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
   const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
 
@@ -100,6 +77,7 @@ export function MovieDetailPage() {
             className="h-full w-full object-cover"
           />
         )}
+
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
       </div>
 
@@ -125,8 +103,13 @@ export function MovieDetailPage() {
           )}
 
           <div className="flex-1">
-            <h1 className="text-4xl font-extrabold">{movie.title}</h1>
-            <p className="mt-1 text-lg text-gray-400">{movie.original_title}</p>
+            <h1 className="text-4xl font-extrabold">
+              {movie.title}
+            </h1>
+
+            <p className="mt-1 text-lg text-gray-400">
+              {movie.original_title}
+            </p>
 
             <div className="mt-4 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white">
               <BookmarkButton movieId={movie.id} />
@@ -135,7 +118,9 @@ export function MovieDetailPage() {
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-gray-300">
               <span>{movie.release_date}</span>
               <span>·</span>
-              <span>{movie.genres.map((genre) => genre.name).join(", ")}</span>
+              <span>
+                {movie.genres.map((genre) => genre.name).join(", ")}
+              </span>
               <span>·</span>
               <span>{formatRuntime(movie.runtime)}</span>
             </div>
@@ -147,7 +132,10 @@ export function MovieDetailPage() {
             )}
 
             <div className="mt-6">
-              <h2 className="text-lg font-bold text-gray-200">줄거리</h2>
+              <h2 className="text-lg font-bold text-gray-200">
+                줄거리
+              </h2>
+
               <p className="mt-2 leading-relaxed text-gray-300">
                 {movie.overview}
               </p>
