@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
+import { signup } from "../../api/members/signup";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -26,6 +27,8 @@ type DuplicateCheckKey = "email" | "nickname";
 
 export function SignupPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [duplicateCheck, setDuplicateCheck] = useState({
   email: { ...DEFAULT_DUPLICATE_CHECK },
   nickname: { ...DEFAULT_DUPLICATE_CHECK },
@@ -133,11 +136,27 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
   }
 };
 
- const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+ const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-  if (!canSubmit) return;
+  if (!canSubmit || isSubmitting) return;
 
-  // 3.4에서 실제 회원가입 API 요청을 추가해요.
+  setIsSubmitting(true);
+
+  try {
+    const response = await signup({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
+
+    alert(response.message);
+
+    // 로그인 페이지를 만든 뒤 이동 기능을 연결해요.
+  } catch {
+    alert("회원가입에 실패했어요. 다시 시도해 주세요.");
+  } finally {
+    setIsSubmitting(false);
+  }
 };
 
   const fieldClass =
@@ -331,12 +350,12 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
         </div>
 
         <button
-          type="submit"
-          disabled={!canSubmit}
-          className="h-12 w-full rounded-lg bg-[#2563EB] text-sm font-extrabold text-white transition-colors enabled:cursor-pointer enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          가입하기
-        </button>
+  type="submit"
+  disabled={!canSubmit || isSubmitting}
+  className="h-12 w-full rounded-lg bg-[#2563EB] text-sm font-extrabold text-white transition-colors enabled:cursor-pointer enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+>
+  {isSubmitting ? "가입 중" : "가입하기"}
+</button>
 
         <div className="flex items-center justify-center gap-1 text-[13px] text-[#606774]">
           <span>이미 계정이 있나요?</span>
