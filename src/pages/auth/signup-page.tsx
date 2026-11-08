@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react";
+import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
+import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -15,8 +17,19 @@ const DEFAULT_FORM = {
 type DefaultFormKey = keyof typeof DEFAULT_FORM;
 type DefaultFormValue = (typeof DEFAULT_FORM)[DefaultFormKey];
 
+const DEFAULT_DUPLICATE_CHECK = {
+  isChecking: false,
+  isAvailable: false,
+};
+
+type DuplicateCheckKey = "email" | "nickname";
+
 export function SignupPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
+  const [duplicateCheck, setDuplicateCheck] = useState({
+  email: { ...DEFAULT_DUPLICATE_CHECK },
+  nickname: { ...DEFAULT_DUPLICATE_CHECK },
+});
 
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
 
@@ -41,20 +54,91 @@ export function SignupPage() {
     isNicknameValid &&
     isPasswordValid &&
     isPasswordConfirmValid;
+    const canSubmit =
+    isFormValid &&
+    duplicateCheck.email.isAvailable &&
+    duplicateCheck.nickname.isAvailable;
+    
 
   const handleChangeField = (
-    key: DefaultFormKey,
-    value: DefaultFormValue,
-  ) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
+  key: DefaultFormKey,
+  value: DefaultFormValue,
+) => {
+  if (key === "email" || key === "nickname") {
+    if (duplicateCheck[key].isChecking) return;
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isFormValid) return;
+    setDuplicateCheck((prev) => ({
+      ...prev,
+      [key]: { ...DEFAULT_DUPLICATE_CHECK },
+    }));
+  }
 
-    // 3.4에서 실제 회원가입 API 요청을 추가해요.
-  };
+  setForm((prev) => ({ ...prev, [key]: value }));
+};
+
+const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
+  const isValid = key === "email" ? isEmailValid : isNicknameValid;
+
+  if (!isValid || duplicateCheck[key].isChecking) return;
+
+  const label = key === "email" ? "이메일" : "닉네임";
+
+  setDuplicateCheck((prev) => ({
+    ...prev,
+    [key]: {
+      isChecking: true,
+      isAvailable: false,
+    },
+  }));
+
+  try {
+    const response =
+      key === "email"
+        ? await checkEmailDuplicate(form.email.trim())
+        : await checkNicknameDuplicate(form.nickname.trim());
+
+    const isAvailable = response.available;
+
+    setDuplicateCheck((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        isAvailable,
+      },
+    }));
+
+    alert(
+      isAvailable
+        ? `사용할 수 있는 ${label}이에요.`
+        : `이미 사용 중인 ${label}이에요.`,
+    );
+  } catch {
+    setDuplicateCheck((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        isAvailable: false,
+      },
+    }));
+
+    alert("중복 확인에 실패했어요. 다시 시도해 주세요.");
+  } finally {
+    setDuplicateCheck((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        isChecking: false,
+      },
+    }));
+  }
+};
+
+ const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  if (!canSubmit) return;
+
+  // 3.4에서 실제 회원가입 API 요청을 추가해요.
+};
 
   const fieldClass =
     "flex min-h-[49px] items-center gap-2 rounded-lg border bg-white px-[13px] focus-within:ring-2 focus-within:ring-blue-200";
@@ -92,6 +176,7 @@ export function SignupPage() {
           >
             <input
               id="signup-email"
+              disabled={duplicateCheck.email.isChecking}
               name="email"
               type="email"
               autoComplete="email"
@@ -104,13 +189,13 @@ export function SignupPage() {
             />
 
             <button
-              type="button"
-              disabled
-              title="3.3에서 중복 확인 API를 연결해요."
-              className={duplicateButtonClass}
-            >
-              중복 확인
-            </button>
+  type="button"
+  disabled={!isEmailValid || duplicateCheck.email.isChecking}
+  onClick={() => handleCheckDuplicate("email")}
+  className={duplicateButtonClass}
+>
+  {duplicateCheck.email.isChecking ? "확인 중" : "중복 확인"}
+</button>
           </div>
 
           {showEmailError && (
@@ -132,6 +217,7 @@ export function SignupPage() {
           >
             <input
               id="signup-nickname"
+              disabled={duplicateCheck.nickname.isChecking}
               name="nickname"
               type="text"
               autoComplete="nickname"
@@ -146,13 +232,13 @@ export function SignupPage() {
             />
 
             <button
-              type="button"
-              disabled
-              title="3.3에서 중복 확인 API를 연결해요."
-              className={duplicateButtonClass}
-            >
-              중복 확인
-            </button>
+  type="button"
+  disabled={!isNicknameValid || duplicateCheck.nickname.isChecking}
+  onClick={() => handleCheckDuplicate("nickname")}
+  className={duplicateButtonClass}
+>
+  {duplicateCheck.nickname.isChecking ? "확인 중" : "중복 확인"}
+</button>
           </div>
 
           {showNicknameError && (
@@ -246,7 +332,7 @@ export function SignupPage() {
 
         <button
           type="submit"
-          disabled={!isFormValid}
+          disabled={!canSubmit}
           className="h-12 w-full rounded-lg bg-[#2563EB] text-sm font-extrabold text-white transition-colors enabled:cursor-pointer enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
           가입하기
