@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 const DEMO_PROFILE = {
   nickname: "jenny",
   email: "jenny@example.com",
@@ -32,14 +33,12 @@ export function ProfilePage() {
           내 정보
         </h1>
 
-        <button
-          type="button"
-          disabled
-          title="내 정보 수정 화면을 만든 뒤 연결해요."
-          className="flex h-[42px] items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white disabled:cursor-not-allowed"
-        >
-          정보 수정
-        </button>
+        <Link
+  to="/profile-edit"
+  className="flex h-[42px] items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white hover:bg-blue-700"
+>
+  정보 수정
+</Link>
       </div>
 
       <section
