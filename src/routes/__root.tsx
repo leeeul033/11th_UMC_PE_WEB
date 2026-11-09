@@ -4,13 +4,18 @@ import Header from "../components/layout/header";
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="flex min-h-screen flex-col bg-[#F6F7F9] text-[#17191E]">
       <Header />
-      <main>
+
+      <main className="flex-1">
         <Outlet />
       </main>
+
       <Footer />
     </div>
   ),
-  notFoundComponent: () => <main className="p-4">페이지를 찾을 수 없어요.</main>,
+
+  notFoundComponent: () => (
+    <div className="p-4">페이지를 찾을 수 없어요.</div>
+  ),
 });

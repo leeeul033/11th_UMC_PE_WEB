@@ -21,7 +21,7 @@ export function LoginPage() {
   const labelClass = "text-[13px] font-extrabold leading-4 text-[#17191E]";
 
   return (
-    <section className="flex min-h-[calc(100dvh-91px)] items-center justify-center bg-[#F6F7F9] px-5 py-12">
+    <section className="flex min-h-[calc(100dvh-148px)] items-center justify-center bg-[#F6F7F9] px-5 py-12">
       <form
         id="login-form"
         onSubmit={handleSubmit}

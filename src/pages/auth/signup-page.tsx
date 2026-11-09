@@ -173,7 +173,7 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
     "shrink-0 text-xs font-extrabold text-[#2563EB] disabled:cursor-not-allowed disabled:opacity-40";
 
   return (
-    <section className="flex min-h-[calc(100dvh-91px)] items-center justify-center bg-[#F6F7F9] px-5 py-12">
+    <section className="flex min-h-[calc(100dvh-148px)] items-center justify-center bg-[#F6F7F9] px-5 py-12">
       <form
         id="signup-form"
         onSubmit={handleSubmit}
