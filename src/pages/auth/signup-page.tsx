@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { signup } from "../../api/members/signup";
+import { Link } from "@tanstack/react-router";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -359,14 +360,12 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
 
         <div className="flex items-center justify-center gap-1 text-[13px] text-[#606774]">
           <span>이미 계정이 있나요?</span>
-          <button
-            type="button"
-            disabled
-            title="필수 미션에서 로그인 페이지를 만든 뒤 연결해요."
-            className="text-xs font-extrabold text-[#2563EB] disabled:cursor-not-allowed"
-          >
-            로그인
-          </button>
+          <Link
+  to="/login"
+  className="text-xs font-extrabold text-[#2563EB] hover:underline"
+>
+  로그인
+</Link>
         </div>
       </form>
     </section>
