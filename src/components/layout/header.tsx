@@ -53,6 +53,15 @@ export default function Header() {
             >
               검색
             </Link>
+            <Link
+  to="/mypage"
+  className="text-sm font-bold text-[#606774] hover:text-[#17191E]"
+  activeProps={{
+    className: "text-[#17191E] underline underline-offset-4",
+  }}
+>
+  내 정보
+</Link>
           </nav>
         </div>
 
