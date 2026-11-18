@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 import { Link } from "@tanstack/react-router";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -28,7 +28,6 @@ type DuplicateCheckKey = "email" | "nickname";
 
 export function SignupPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [duplicateCheck, setDuplicateCheck] = useState({
   email: { ...DEFAULT_DUPLICATE_CHECK },
@@ -137,28 +136,19 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
   }
 };
 
- const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  if (!canSubmit || isSubmitting) return;
+  const signupMutation = useSignupMutation();
 
-  setIsSubmitting(true);
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  try {
-    const response = await signup({
+    if (!canSubmit || signupMutation.isPending) return;
+
+    signupMutation.mutate({
       email: form.email.trim(),
       nickname: form.nickname.trim(),
       password: form.password,
     });
-
-    alert(response.message);
-
-    // 로그인 페이지를 만든 뒤 이동 기능을 연결해요.
-  } catch {
-    alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   const fieldClass =
     "flex min-h-[49px] items-center gap-2 rounded-lg border bg-white px-[13px] focus-within:ring-2 focus-within:ring-blue-200";
@@ -352,10 +342,10 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
 
         <button
   type="submit"
-  disabled={!canSubmit || isSubmitting}
+  disabled={!canSubmit || signupMutation.isPending}
   className="h-12 w-full rounded-lg bg-[#2563EB] text-sm font-extrabold text-white transition-colors enabled:cursor-pointer enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
 >
-  {isSubmitting ? "가입 중" : "가입하기"}
+  {signupMutation.isPending ? "가입 중" : "가입하기"}
 </button>
 
         <div className="flex items-center justify-center gap-1 text-[13px] text-[#606774]">
