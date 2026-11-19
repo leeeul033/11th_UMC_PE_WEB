@@ -1,19 +1,69 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
-
-const DEFAULT_PROFILE = {
-  nickname: "jenny",
-  email: "jenny@example.com",
-};
+import { useState, type ChangeEvent } from "react";
+import { useUpdateMeMutation } from "../hooks/use-update-me-mutation";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../api/members/me";
+import { checkNicknameDuplicate } from "../api/members/check-nickname-duplicate";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export function ProfileEditPage() {
-  const [nickname, setNickname] = useState(DEFAULT_PROFILE.nickname);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const [nicknameInput, setNicknameInput] = useState<string | null>(null);
   const [preview, setPreview] = useState("");
   const [imageError, setImageError] = useState("");
 
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+  const [checkedNickname, setCheckedNickname] = useState<string | null>(null);
+
+  const updateMeMutation = useUpdateMeMutation();
+  const nickname = nicknameInput ?? meQuery.data?.nickname ?? "";
+  const trimmedNickname = nickname.trim();
+
   const isNicknameValid =
-    nickname.trim().length >= 2 && nickname.trim().length <= 12;
+    trimmedNickname.length >= 2 && trimmedNickname.length <= 12;
+
+  const isNicknameChanged = trimmedNickname !== meQuery.data?.nickname;
+
+  const canSubmit =
+    Boolean(meQuery.data) &&
+    isNicknameValid &&
+    !isCheckingNickname &&
+    (!isNicknameChanged || checkedNickname === trimmedNickname);
+
+  const handleCheckNickname = async () => {
+    if (
+      !isNicknameValid ||
+      !isNicknameChanged ||
+      isCheckingNickname ||
+      updateMeMutation.isPending
+    ) {
+      return;
+    }
+
+    setIsCheckingNickname(true);
+    setCheckedNickname(null);
+
+    try {
+      const response = await checkNicknameDuplicate(trimmedNickname);
+
+      if (response.available) {
+        setCheckedNickname(trimmedNickname);
+        alert("사용할 수 있는 닉네임이에요.");
+      } else {
+        alert("이미 사용 중인 닉네임이에요.");
+      }
+    } catch {
+      alert("중복 확인에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsCheckingNickname(false);
+    }
+  };
 
   const handleChangeImage = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,14 +98,31 @@ export function ProfileEditPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isNicknameValid) return;
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || updateMeMutation.isPending) return;
 
-    alert(
-      "입력값을 확인했어요. 이번 주차는 화면 구현 단계이므로 서버에는 저장되지 않아요.",
-    );
+    updateMeMutation.mutate({ nickname: trimmedNickname });
   };
+
+  if (meQuery.isPending) {
+    return <p className="p-8">내 정보를 불러오는 중이에요.</p>;
+  }
+
+  if (meQuery.isError) {
+    return (
+      <div className="p-8">
+        <p>내 정보를 불러오지 못했어요.</p>
+        <button
+          type="button"
+          onClick={() => meQuery.refetch()}
+          className="mt-3 text-blue-600"
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-148px)] max-w-[1440px] flex-col gap-8 px-5 py-6 md:px-10 xl:px-20">
@@ -72,10 +139,10 @@ export function ProfileEditPage() {
         <button
           type="submit"
           form="profile-form"
-          disabled={!isNicknameValid}
+          disabled={!canSubmit || updateMeMutation.isPending}
           className="h-[42px] rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white enabled:cursor-pointer enabled:hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          변경사항 저장
+          {updateMeMutation.isPending ? "저장 중" : "저장"}
         </button>
       </div>
 
@@ -168,7 +235,11 @@ export function ProfileEditPage() {
                 id="profile-nickname"
                 name="nickname"
                 value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
+                disabled={isCheckingNickname || updateMeMutation.isPending}
+                onChange={(e) => {
+                  setNicknameInput(e.target.value);
+                  setCheckedNickname(null);
+                }}
                 aria-invalid={!isNicknameValid}
                 aria-describedby={
                   !isNicknameValid ? "profile-nickname-error" : undefined
@@ -178,11 +249,21 @@ export function ProfileEditPage() {
 
               <button
                 type="button"
-                disabled
-                title="이번 주차는 화면만 구현하며 중복 확인은 연결하지 않아요."
-                className="shrink-0 cursor-not-allowed text-xs font-extrabold text-[#2563EB] opacity-50"
+                disabled={
+                  !meQuery.data ||
+                  !isNicknameValid ||
+                  !isNicknameChanged ||
+                  isCheckingNickname ||
+                  updateMeMutation.isPending
+                }
+                onClick={handleCheckNickname}
+                className="shrink-0 text-xs font-extrabold text-[#2563EB] enabled:cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
               >
-                중복 확인
+                {isCheckingNickname
+                  ? "확인 중"
+                  : checkedNickname === trimmedNickname
+                    ? "확인 완료"
+                    : "중복 확인"}
               </button>
             </div>
 
@@ -208,7 +289,7 @@ export function ProfileEditPage() {
               id="profile-email"
               name="email"
               type="email"
-              value={DEFAULT_PROFILE.email}
+              value={meQuery.data?.email ?? ""}
               readOnly
               className="h-[49px] w-full rounded-lg border border-[#E3E6EB] bg-white px-[13px] text-sm outline-none focus:ring-2 focus:ring-blue-200"
             />
