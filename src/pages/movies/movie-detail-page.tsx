@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { BookmarkButton } from "../../components/bookmark-button";
+import { RatingForm } from "../../components/rating-form";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
   getTmdbBackdropUrl,
@@ -140,6 +141,15 @@ export function MovieDetailPage() {
                 {movie.overview}
               </p>
             </div>
+
+            <section className="mt-8" aria-labelledby="my-rating-title">
+              <h2 id="my-rating-title" className="text-lg font-bold text-gray-200">
+                내 평점
+              </h2>
+              <div className="mt-3">
+                <RatingForm movieId={movie.id} />
+              </div>
+            </section>
           </div>
         </div>
       </div>
