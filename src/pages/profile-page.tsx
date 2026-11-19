@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../api/members/me";
+import { useAuthStore } from "../stores/auth-store";
 const DEMO_PROFILE = {
   nickname: "jenny",
   email: "jenny@example.com",
@@ -26,6 +29,16 @@ const DEMO_FAVORITES = [
 ];
 
 export function ProfilePage() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const profile = meQuery.data ?? DEMO_PROFILE;
+
   return (
     <div className="mx-auto flex max-w-[1440px] flex-col gap-7 px-5 py-6 md:px-10 xl:px-20">
       <div className="flex items-center justify-between gap-4">
@@ -74,7 +87,7 @@ export function ProfilePage() {
                 닉네임
               </dt>
               <dd className="text-sm leading-[17px] font-bold">
-                {DEMO_PROFILE.nickname}
+                {profile.nickname}
               </dd>
             </div>
 
@@ -83,7 +96,7 @@ export function ProfilePage() {
                 이메일
               </dt>
               <dd className="break-all text-sm leading-[17px] font-bold">
-                {DEMO_PROFILE.email}
+                {profile.email}
               </dd>
             </div>
           </dl>
