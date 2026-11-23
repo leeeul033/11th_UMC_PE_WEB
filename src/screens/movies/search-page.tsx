@@ -37,7 +37,7 @@ export function SearchPage() {
         </p>
       ) : searchQuery.isSuccess && searchResults.length === 0 ? (
         <p className="text-gray-500">
-          "<span className="font-semibold">{normalizedQuery}</span>"에 대한
+          &quot;<span className="font-semibold">{normalizedQuery}</span>&quot;에 대한
           검색 결과가 없어요.
         </p>
       ) : (

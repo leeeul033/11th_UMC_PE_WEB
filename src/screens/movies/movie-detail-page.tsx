@@ -127,7 +127,7 @@ export function MovieDetailPage() {
 
             {movie.tagline && (
               <p className="mt-6 text-xl font-semibold italic text-blue-400">
-                "{movie.tagline}"
+                &ldquo;{movie.tagline}&rdquo;
               </p>
             )}
 
