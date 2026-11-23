@@ -1,9 +1,13 @@
-import { Link } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "../../api/members/me";
 import { useAuthStore } from "../../stores/auth-store";
 
 export default function Header() {
+  const pathname = usePathname();
   const accessToken = useAuthStore((state) => state.accessToken);
   const meQuery = useQuery({
   queryKey: ["members", "me"],
@@ -17,7 +21,7 @@ export default function Header() {
       <div className="mx-auto flex min-h-[91px] max-w-[1440px] flex-wrap items-center justify-between gap-4 px-5 py-6 md:px-10 xl:px-20">
         <div className="flex items-center gap-6 md:gap-[42px]">
           <Link
-            to="/"
+            href="/"
             aria-label="UMCine 홈"
             className="flex items-center gap-2.5 text-[#17191E]"
           >
@@ -45,31 +49,31 @@ export default function Header() {
 
           <nav aria-label="주요 메뉴" className="flex items-center gap-5 md:gap-[30px]">
             <Link
-              to="/"
-              activeOptions={{ exact: true }}
-              className="text-sm font-bold text-[#606774] hover:text-[#17191E]"
-              activeProps={{
-                className: "text-[#17191E] underline underline-offset-4",
-              }}
+              href="/"
+              className={`text-sm font-bold hover:text-[#17191E] ${
+                pathname === "/"
+                  ? "text-[#17191E] underline underline-offset-4"
+                  : "text-[#606774]"
+              }`}
             >
               영화
             </Link>
 
             <Link
-              to="/search"
-              className="text-sm font-bold text-[#606774] hover:text-[#17191E]"
-              activeProps={{
-                className: "text-[#17191E] underline underline-offset-4",
-              }}
+              href="/search"
+              className={`text-sm font-bold hover:text-[#17191E] ${
+                pathname === "/search"
+                  ? "text-[#17191E] underline underline-offset-4"
+                  : "text-[#606774]"
+              }`}
             >
               검색
             </Link>
             <Link
-  to="/mypage"
-  className="text-sm font-bold text-[#606774] hover:text-[#17191E]"
-  activeProps={{
-    className: "text-[#17191E] underline underline-offset-4",
-  }}
+  href="/mypage"
+  className={`text-sm font-bold hover:text-[#17191E] ${
+    pathname === "/mypage" ? "text-[#17191E] underline underline-offset-4" : "text-[#606774]"
+  }`}
 >
   내 정보
 </Link>
@@ -78,7 +82,7 @@ export default function Header() {
 
         <div className="flex items-center gap-2.5">
           <Link
-            to="/search"
+            href="/search"
             aria-label="영화 검색"
             className="flex size-[42px] items-center justify-center rounded-lg border border-[#E3E6EB] text-[#606774] hover:bg-gray-50"
           >
@@ -99,7 +103,7 @@ export default function Header() {
 
                     {!accessToken ? (
             <Link
-              to="/login"
+              href="/login"
               className="flex h-[42px] items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white hover:bg-blue-700"
             >
               로그인
@@ -111,7 +115,7 @@ export default function Header() {
             />
           ) : (
             <Link
-              to="/mypage"
+              href="/mypage"
               className="flex h-[42px] items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white hover:bg-blue-700"
             >
               마이페이지

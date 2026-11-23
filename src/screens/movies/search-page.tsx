@@ -1,12 +1,15 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
-import { Link, useSearch } from "@tanstack/react-router";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { searchMovies } from "../../api/movies/search-movies";
 import { BookmarkButton } from "../../components/bookmark-button";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 export function SearchPage() {
-  const { query } = useSearch({ from: "/search" });
-  const normalizedQuery = query?.trim() ?? "";
+  const searchParams = useSearchParams();
+  const normalizedQuery = searchParams.get("query")?.trim() ?? "";
 
   const searchQuery = useQuery({
     queryKey: ["movies", "search", { query: normalizedQuery }],
@@ -56,8 +59,7 @@ export function SearchPage() {
                   className="rounded-lg border bg-white p-4 shadow-sm transition hover:shadow-md"
                 >
                   <Link
-                    to="/movies/$movieId"
-                    params={{ movieId: String(movie.id) }}
+                    href={`/movies/${movie.id}`}
                     className="flex gap-4"
                   >
                     {posterUrl ? (

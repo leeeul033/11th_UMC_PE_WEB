@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { BookmarkButton } from "../../components/bookmark-button";
 import { RatingForm } from "../../components/rating-form";
@@ -19,9 +20,7 @@ function formatRuntime(runtime: number | null) {
 }
 
 export function MovieDetailPage() {
-  const { movieId: movieIdParam } = useParams({
-    from: "/movies/$movieId",
-  });
+  const { movieId: movieIdParam } = useParams<{ movieId: string }>();
 
   const movieId = Number(movieIdParam);
   const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
@@ -84,7 +83,7 @@ export function MovieDetailPage() {
 
       <div className="relative mx-auto max-w-7xl px-4 py-8">
         <Link
-          to="/"
+          href="/"
           className="mb-6 inline-block text-sm font-medium text-gray-300 hover:text-white"
         >
           ← 영화 목록으로 돌아가기
