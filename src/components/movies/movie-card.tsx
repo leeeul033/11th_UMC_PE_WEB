@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import type { TmdbMovieListItem } from "../../api/movies/models";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { BookmarkButton } from "../bookmark-button";
@@ -13,8 +13,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
   return (
     <article className="group relative overflow-hidden rounded-[10px] bg-white shadow-md transition-transform duration-200 hover:-translate-y-1 hover:shadow-lg">
       <Link
-        to="/movies/$movieId"
-        params={{ movieId: String(movie.id) }}
+        href={`/movies/${movie.id}`}
         className="block"
       >
         <div className="aspect-[2/3] w-full overflow-hidden bg-gray-200">

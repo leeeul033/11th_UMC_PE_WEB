@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 import { getFavorites } from "../api/favorites";
 import { getMe } from "../api/members/me";
 import { getMovieDetail } from "../api/movies/get-movie-detail";
@@ -26,7 +26,7 @@ function FavoriteMovieCard({ movieId }: { movieId: number }) {
 
   return (
     <article className="min-w-0">
-      <Link to="/movies/$movieId" params={{ movieId: String(movieId) }}>
+      <Link href={`/movies/${movieId}`}>
         {posterUrl ? (
           <img
             src={posterUrl}
@@ -85,7 +85,7 @@ export function ProfilePage() {
     <div className="mx-auto flex max-w-[1440px] flex-col gap-7 px-5 py-6 md:px-10 xl:px-20">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-[31px] leading-[37px] font-bold tracking-[-1.24px]">내 정보</h1>
-        <Link to="/profile-edit" className="flex h-[42px] items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white hover:bg-blue-700">
+        <Link href="/profile-edit" className="flex h-[42px] items-center justify-center rounded-lg bg-[#2563EB] px-4 text-sm font-extrabold text-white hover:bg-blue-700">
           정보 수정
         </Link>
       </div>

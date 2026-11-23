@@ -2,7 +2,7 @@ import { useState } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { useSignupMutation } from "../../hooks/use-signup-mutation";
-import { Link } from "@tanstack/react-router";
+import Link from "next/link";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -351,7 +351,7 @@ const handleCheckDuplicate = async (key: DuplicateCheckKey) => {
         <div className="flex items-center justify-center gap-1 text-[13px] text-[#606774]">
           <span>이미 계정이 있나요?</span>
           <Link
-  to="/login"
+  href="/login"
   className="text-xs font-extrabold text-[#2563EB] hover:underline"
 >
   로그인
