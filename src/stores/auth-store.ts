@@ -1,10 +1,16 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 
 interface AuthStore {
   accessToken: string | null;
   setAccessToken: (accessToken: string | null) => void;
 }
+
+const serverStorage: StateStorage = {
+  getItem: () => null,
+  setItem: () => undefined,
+  removeItem: () => undefined,
+};
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -14,7 +20,9 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: "umcine-auth-store",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() =>
+        typeof window === "undefined" ? serverStorage : localStorage,
+      ),
       partialize: (state) => ({ accessToken: state.accessToken }),
     },
   ),
